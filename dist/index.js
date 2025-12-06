@@ -58,6 +58,10 @@ function run() {
             const workflow = process.env.GITHUB_WORKFLOW || "";
             const runnerOS = process.env.RUNNER_OS || "";
             const actor = process.env.GITHUB_ACTOR || "";
+            const service_name = process.env.SERVICE_NAME || "";
+            const environment = process.env.ENVIRONMENT || "";
+            const project_id = process.env.PROJECT_ID || "";
+            
             (() => __awaiter(this, void 0, void 0, function* () {
                 yield web.chat.postMessage({
                     channel: channel_id,
@@ -86,16 +90,16 @@ function run() {
                                     "text": `*Actions URL:*\n${actionsUrl}`
                                 },
                                 {
-                                    "type": "mrkdwn",
-                                    "text": `*GITHUB_RUN_ID:*\n${run_id}`
+                                "type": "mrkdwn",
+                                "text": `*SERVICE_NAME:*\n${service_name}`
                                 },
                                 {
-                                    "type": "mrkdwn",
-                                    "text": `*Workflow:*\n${workflow}`
+                                "type": "mrkdwn",
+                                "text": `*PROJECT_ID:*\n${project_id}`
                                 },
                                 {
-                                    "type": "mrkdwn",
-                                    "text": `*RunnerOS:*\n${runnerOS}`
+                                "type": "mrkdwn",
+                                "text": `*ENVIRONMENT:*\n${environment}`
                                 }
                             ]
                         },
@@ -111,7 +115,7 @@ function run() {
                                     },
                                     "style": "primary",
                                     "value": "approve",
-                                    "action_id": "slack-approval-approve"
+                                    "action_id": `slack-approval-approve-${run_id}`
                                 },
                                 {
                                     "type": "button",
@@ -122,14 +126,14 @@ function run() {
                                     },
                                     "style": "danger",
                                     "value": "reject",
-                                    "action_id": "slack-approval-reject"
+                                    "action_id": `slack-approval-reject-${run_id}`
                                 }
                             ]
                         }
                     ]
                 });
             }))();
-            app.action('slack-approval-approve', ({ ack, client, body, logger }) => __awaiter(this, void 0, void 0, function* () {
+            app.action(`slack-approval-approve-${run_id}`, ({ ack, client, body, logger }) => __awaiter(this, void 0, void 0, function* () {
                 var _a, _b, _c;
                 yield ack();
                 try {
@@ -139,7 +143,7 @@ function run() {
                         'type': 'section',
                         'text': {
                             'type': 'mrkdwn',
-                            'text': `Approved by <@${body.user.id}> `,
+                            'text': `Approved by <@${body.user.id}>`,
                         },
                     });
                     yield client.chat.update({
@@ -153,7 +157,7 @@ function run() {
                 }
                 process.exit(0);
             }));
-            app.action('slack-approval-reject', ({ ack, client, body, logger }) => __awaiter(this, void 0, void 0, function* () {
+            app.action(`slack-approval-reject-${run_id}`, ({ ack, client, body, logger }) => __awaiter(this, void 0, void 0, function* () {
                 var _d, _e, _f;
                 yield ack();
                 try {

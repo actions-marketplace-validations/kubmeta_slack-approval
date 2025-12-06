@@ -27,7 +27,9 @@ async function run(): Promise<void> {
     const workflow   = process.env.GITHUB_WORKFLOW || "";
     const runnerOS   = process.env.RUNNER_OS || "";
     const actor      = process.env.GITHUB_ACTOR || "";
-
+    const service_name = process.env.SERVICE_NAME || "";
+    const environment = process.env.ENVIRONMENT || "";
+    const project_id = process.env.PROJECT_ID || "";
     (async () => {
       await web.chat.postMessage({ 
         channel: channel_id, 
@@ -57,15 +59,15 @@ async function run(): Promise<void> {
                 },
                 {
                   "type": "mrkdwn",
-                  "text": `*GITHUB_RUN_ID:*\n${run_id}`
+                  "text": `*SERVICE_NAME:*\n${service_name}`
                 },
                 {
                   "type": "mrkdwn",
-                  "text": `*Workflow:*\n${workflow}`
+                  "text": `*PROJECT_ID:*\n${project_id}`
                 },
                 {
                   "type": "mrkdwn",
-                  "text": `*RunnerOS:*\n${runnerOS}`
+                  "text": `*ENVIRONMENT:*\n${environment}`
                 }
               ]
             },
@@ -81,7 +83,7 @@ async function run(): Promise<void> {
                         },
                         "style": "primary",
                         "value": "approve",
-                        "action_id": "slack-approval-approve"
+                        "action_id": `slack-approval-approve-${run_id}`
                     },
                     {
                         "type": "button",
@@ -92,7 +94,7 @@ async function run(): Promise<void> {
                         },
                         "style": "danger",
                         "value": "reject",
-                        "action_id": "slack-approval-reject"
+                        "action_id": `slack-approval-reject-${run_id}`
                     }
                 ]
             }
@@ -100,7 +102,7 @@ async function run(): Promise<void> {
       });
     })();
 
-    app.action('slack-approval-approve', async ({ack, client, body, logger}) => {
+    app.action(`slack-approval-approve-${run_id}`, async ({ack, client, body, logger}) => {
       await ack();
       try {
         const response_blocks = (<BlockAction>body).message?.blocks
@@ -109,7 +111,7 @@ async function run(): Promise<void> {
           'type': 'section',
           'text': {
             'type': 'mrkdwn',
-            'text': `Approved by <@${body.user.id}> `,
+            'text': `Approved by <@${body.user.id}>`,
           },
         })
 
@@ -125,7 +127,7 @@ async function run(): Promise<void> {
       process.exit(0)
     });
 
-    app.action('slack-approval-reject', async ({ack, client, body, logger}) => {
+    app.action(`slack-approval-reject-${run_id}`, async ({ack, client, body, logger}) => {
       await ack();
       try {
         const response_blocks = (<BlockAction>body).message?.blocks
